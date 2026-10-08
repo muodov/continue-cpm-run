@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Continue CPM run</title>
+<style>
+    :root {
+        color-scheme: light dark;
+        --accent: #c96442;
+    }
+    body {
+        max-width: 36rem;
+        margin: 15vh auto;
+        padding: 0 16px;
+        font-family: system-ui, sans-serif;
+        line-height: 1.5;
+    }
+    .button {
+        display: inline-block;
+        padding: 0.6em 1.1em;
+        border-radius: 6px;
+        background: var(--accent);
+        color: #fff;
+        text-decoration: none;
+    }
+</style>
+</head>
+<body>
+<main id="open-run" hidden>
+    <h1>Continue CPM run <span id="run"></span></h1>
+    <p>Opening Claude Code with <code id="command"></code>. If it doesn't open, use the button.</p>
+    <p><a class="button" id="open">Open in Claude Code</a></p>
+</main>
+<main id="not-a-run" hidden>
+    <h1>Not a run ID</h1>
+    <p>This page opens Claude Code with <code>/continue-cpm-run &lt;run ID&gt;</code>. Link to it with <code>?run=</code> and a GitHub Actions run ID.</p>
+</main>
+<script>
+    // Only /continue-cpm-run with a run ID goes through, so a link here can't
+    // open Claude Code with any other prompt.
+    const run = new URLSearchParams(location.search).get("run") || ""
+
+    if (/^\d{1,20}$/.test(run)) {
+        const command = `/continue-cpm-run ${run}`
+        const target = `claude://code/new?q=${encodeURIComponent(command)}`
+
+        document.getElementById("run").textContent = run
+        document.getElementById("command").textContent = command
+        document.getElementById("open").href = target
+        document.getElementById("open-run").hidden = false
+        location.href = target
+    } else {
+        document.getElementById("not-a-run").hidden = false
+    }
+</script>
+</body>
+</html>
