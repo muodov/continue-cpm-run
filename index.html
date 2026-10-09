@@ -30,25 +30,34 @@
 <body>
 <main id="open-run" hidden>
     <h1>Continue CPM run <span id="run"></span></h1>
-    <p>Opening Claude Code with <code id="command"></code>. If it doesn't open, use the button.</p>
-    <p><a class="button" id="open">Open in Claude Code</a></p>
+    <p>Opening <span id="app"></span> with <code id="command"></code>. If it doesn't open, use the button.</p>
+    <p><a class="button" id="open"></a></p>
+    <p id="cli-help" hidden>Nothing happens? Claude Code registers the link handler after you send the first prompt of an interactive <code>claude</code> session on this computer.</p>
 </main>
 <main id="not-a-run" hidden>
     <h1>Not a run ID</h1>
-    <p>This page opens Claude Code with <code>/continue-cpm-run &lt;run ID&gt;</code>. Link to it with <code>?run=</code> and a GitHub Actions run ID.</p>
+    <p>This page opens Claude Code with <code>/continue-cpm-run &lt;run ID&gt;</code>. Link to it with <code>?run=</code> and a GitHub Actions run ID, and add <code>&amp;app=cli</code> to open Claude Code in a terminal instead of Claude Desktop.</p>
 </main>
 <script>
     // Only /continue-cpm-run with a run ID goes through, so a link here can't
     // open Claude Code with any other prompt.
-    const run = new URLSearchParams(location.search).get("run") || ""
+    const params = new URLSearchParams(location.search)
+    const run = params.get("run") || ""
+    const cli = params.get("app") === "cli"
+    // The skill lives in this repository.
+    const repo = "duckduckgo/tracker-radar-internal"
 
     if (/^\d{1,20}$/.test(run)) {
         const command = `/continue-cpm-run ${run}`
-        const target = `claude://code/new?q=${encodeURIComponent(command)}`
+        const query = `repo=${repo}&q=${encodeURIComponent(command)}`
+        const target = cli ? `claude-cli://open?${query}` : `claude://code/new?${query}`
 
         document.getElementById("run").textContent = run
+        document.getElementById("app").textContent = cli ? "Claude Code in a terminal" : "Claude Desktop"
         document.getElementById("command").textContent = command
+        document.getElementById("open").textContent = cli ? "Open in a terminal" : "Open in Claude Desktop"
         document.getElementById("open").href = target
+        document.getElementById("cli-help").hidden = !cli
         document.getElementById("open-run").hidden = false
         location.href = target
     } else {
